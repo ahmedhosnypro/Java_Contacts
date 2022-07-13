@@ -1,14 +1,14 @@
-package contacts;
+package contacts.contact;
 
 public class Contact {
-    private String name;
-    private String surname;
-    private String number;
+    protected String name;
+    protected String surname;
+    protected String number;
 
     public Contact(String name, String surname, String number) {
         this.name = name;
         this.surname = surname;
-        this.number = number;
+        this.number = PhoneNumberValidator.validateAndReturn(number);
     }
 
     //getters & setters for properties
@@ -33,6 +33,13 @@ public class Contact {
     }
 
     public void setNumber(String number) {
-        this.number = number;
+        this.number = PhoneNumberValidator.validateAndReturn(number);
+    }
+
+    @Override
+    public String toString() {
+        return (name.isEmpty() ? "" : name + " ") +
+                (surname.isEmpty() ? "" : surname + ", ") +
+                (number.isEmpty() ? "[no number]" : number);
     }
 }

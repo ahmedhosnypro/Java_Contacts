@@ -219,6 +219,144 @@ files:
     \        }\n        catch (Exception ex) {\n            return new CheckResult(false,\
     \ \"Can't check the answer\");\n        }\n    }\n}\n"
   learner_created: false
+- name: src/contacts/cli/CLI.java
+  visible: true
+  learner_created: true
+- name: src/contacts/cli/CliCommand.java
+  visible: true
+  learner_created: true
+- name: src/contacts/cli/CliCommandController.java
+  visible: true
+  learner_created: true
+- name: src/contacts/database/Dataset.java
+  visible: true
+  text: |
+    package contacts;
+
+    import java.util.ArrayList;
+
+    public class Dataset {
+        private Dataset() {
+        }
+
+        private static final ArrayList<Contact> contacts = new ArrayList<>();
+
+        public static void addContact(Contact contact) {
+            contacts.add(contact);
+        }
+
+        public static void removeContact(Contact contact) {
+            contacts.remove(contact);
+        }
+
+        public static void removeAllContacts() {
+            contacts.clear();
+        }
+
+        public static boolean containsContact(Contact contact) {
+            return contacts.contains(contact);
+        }
+    }
+  learner_created: true
+- name: src/contacts/contact/Contact.java
+  visible: true
+  text: |
+    package contacts;
+
+    public class Contact {
+        private String name;
+        private String surname;
+        private String number;
+
+        public Contact(String name, String surname, String number) {
+            this.name = name;
+            this.surname = surname;
+            this.number = number;
+        }
+
+        //getters & setters for properties
+        public String getName() {
+            return name;
+        }
+
+        public String getSurname() {
+            return surname;
+        }
+
+        public String getNumber() {
+            return number;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public void setSurname(String surname) {
+            this.surname = surname;
+        }
+
+        public void setNumber(String number) {
+            this.number = number;
+        }
+    }
+  learner_created: true
+- name: src/contacts/cli/AddCommand.java
+  visible: true
+  learner_created: true
+- name: src/contacts/cli/RemoveCommand.java
+  visible: true
+  learner_created: true
+- name: src/contacts/cli/EditCommand.java
+  visible: true
+  learner_created: true
+- name: src/contacts/cli/CountCommand.java
+  visible: true
+  learner_created: true
+- name: src/contacts/cli/ListCommand.java
+  visible: true
+  learner_created: true
+- name: src/contacts/cli/ExitCommand.java
+  visible: true
+  learner_created: true
+- name: src/contacts/contact/IContactBuilder.java
+  visible: true
+  text: |
+    package contacts;
+
+    import java.util.Scanner;
+
+    public class ContactBuilder {
+        static Scanner scanner = new Scanner(System.in);
+
+        public static void createContact() {
+            System.out.println("Enter the name of the person:");
+            String name = scanner.nextLine();
+
+            System.out.println("Enter the surname of the person:");
+            String surname = scanner.nextLine();
+
+            System.out.println("Enter the number:");
+            String number = scanner.nextLine();
+
+            Contact contact = new Contact(name, surname, number);
+            Dataset.addContact(contact);
+
+            System.out.println("""
+                    A record created!
+                    A Phone Book with a single record created!
+                    """);
+        }
+    }
+  learner_created: true
+- name: src/contacts/contact/ContactBuilder.java
+  visible: true
+  learner_created: true
+- name: src/contacts/contact/PhoneNumberValidator.java
+  visible: true
+  learner_created: true
 feedback_link: https://hyperskill.org/learn/step/5325#comment
-status: Unchecked
+status: Solved
+feedback:
+  message: Congratulations!
+  time: Wed, 13 Jul 2022 20:47:09 UTC
 record: -1
