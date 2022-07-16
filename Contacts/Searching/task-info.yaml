@@ -205,6 +205,735 @@ files:
     \        }\n        catch (Exception ex) {\n            return new CheckResult(false,\
     \ \"Can't check the answer\");\n        }\n    }\n}\n"
   learner_created: false
+- name: src/contacts/validator/GenderValidator.java
+  visible: true
+  text: |
+    package contacts.validator;
+
+    public class GenderValidator {
+
+        public static String validateAndReturn(String input) {
+            if (input == null || input.isEmpty()) {
+                System.out.println("Bad gender!");
+                return "";
+            }
+
+            if (isValid(input)) {
+                return input;
+            }
+            return "";
+        }
+
+        private static boolean isValid(String input) {
+            return input.equals("M") || input.equals("F");
+        }
+    }
+  learner_created: true
+- name: src/contacts/contact/person/PersonDetailsFactory.java
+  visible: true
+  text: |
+    package contacts.contact.person;
+
+    import contacts.contact.ContactDetailsFactory;
+    import contacts.validator.BirthDateValidator;
+    import contacts.validator.GenderValidator;
+
+    import java.time.LocalDateTime;
+
+    import static contacts.Main.SCANNER;
+
+    public class PersonDetailsFactory implements ContactDetailsFactory {
+
+        @Override
+        public LocalDateTime addBirthDate() {
+            System.out.print("Enter the birth date");
+            return BirthDateValidator.getValidDateOrNull(SCANNER.nextLine());
+        }
+
+        @Override
+        public String addGender() {
+            System.out.println("Enter the gender (M, F): ");
+            return GenderValidator.validateAndReturn(SCANNER.nextLine());
+        }
+
+        @Override
+        public String addAddress() {
+            return null;
+        }
+    }
+  learner_created: true
+- name: src/contacts/contact/organization/OrganizationFactory.java
+  visible: true
+  text: |
+    package contacts.contact.organization;
+
+    import contacts.contact.Contact;
+    import contacts.contact.ContactDetailsFactory;
+    import contacts.contact.ContactFactory;
+
+    public class OrganizationFactory implements ContactFactory {
+
+        @Override
+        public Contact createContact() {
+            ContactDetailsFactory contactDetailsFactory = new OrganizationDetailsFactory();
+            return new Organization(contactDetailsFactory);
+        }
+    }
+  learner_created: true
+- name: src/contacts/database/Dataset.java
+  visible: true
+  text: |
+    package contacts.database;
+
+    import contacts.contact.Contact;
+
+    import java.util.ArrayList;
+
+    public class Dataset {
+        private Dataset() {
+        }
+
+        private static final ArrayList<Contact> contacts = new ArrayList<>();
+
+        public static int getSize() {
+            return contacts.size();
+        }
+
+        public static Contact getRecord(int index) {
+            return contacts.get(index);
+        }
+
+        public static boolean isEmpty() {
+            return contacts.isEmpty();
+        }
+
+        public static void addContact(Contact contact) {
+            contacts.add(contact);
+        }
+
+        public static void removeContact(Contact contact) {
+            contacts.remove(contact);
+        }
+
+        public static String list() {
+            if (isEmpty()) {
+                return "";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < Dataset.getSize(); i++) {
+                sb.append(String.format("%d. %s%n", i + 1, Dataset.getRecord(i).toString()));
+            }
+            return sb.toString().trim();
+        }
+    }
+  learner_created: true
+- name: src/contacts/validator/BirthDateValidator.java
+  visible: true
+  text: |-
+    package contacts.validator;
+
+    import java.time.LocalDateTime;
+    import java.util.regex.Pattern;
+
+    public class BirthDateValidator {
+        private BirthDateValidator() {
+        }
+
+        private static final String BIRTH_DATE_REGEX = "([12]\\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01]))";
+        private static final Pattern BIRTH_DATE_PATTERN = Pattern.compile(BIRTH_DATE_REGEX);
+
+
+        private static boolean isValid(String birthDate) {
+            return BIRTH_DATE_PATTERN.matcher(birthDate).matches();
+        }
+
+        private static final String BAD_BIRTH = "Bad birth date!";
+
+
+        public static String validateAndReturn(String input) {
+            if (input == null || input.isEmpty()) {
+                System.out.println(BAD_BIRTH);
+                return "";
+            }
+            if (isValid(input)) {
+                return input;
+            } else {
+                System.out.println(BAD_BIRTH);
+                return "";
+            }
+        }
+
+        public static LocalDateTime getValidDateOrNull(String input) {
+            LocalDateTime birthDateTime = null;
+            try {
+                birthDateTime = LocalDateTime.parse(validateAndReturn(input));
+            } catch (Exception e) {
+                System.out.println(BAD_BIRTH);
+            }
+            return birthDateTime;
+        }
+    }
+  learner_created: true
+- name: src/contacts/contact/person/Person.java
+  visible: true
+  text: |
+    package contacts.contact.person;
+
+    import contacts.contact.Contact;
+    import contacts.contact.ContactDetailsFactory;
+    import contacts.validator.BirthDateValidator;
+    import contacts.validator.GenderValidator;
+    import contacts.validator.PhoneNumberValidator;
+
+    import java.time.LocalDateTime;
+
+    import static contacts.Main.SCANNER;
+
+    public class Person extends Contact {
+        protected String nickName;
+        protected LocalDateTime birthDate;
+        protected String gender;
+
+        public Person(ContactDetailsFactory detailsFactory) {
+            super();
+            name = detailsFactory.addName();
+            nickName = detailsFactory.addSurname();
+            birthDate = detailsFactory.addBirthDate();
+            gender = detailsFactory.addGender();
+            number = detailsFactory.addNumber();
+        }
+
+        public void setNickName(String nickName) {
+            this.nickName = nickName;
+        }
+
+        public void setBirthDate(String birthDate) {
+
+            LocalDateTime birthDateTime = null;
+            try {
+                birthDateTime = LocalDateTime.parse(BirthDateValidator.validateAndReturn(birthDate));
+            } catch (Exception e) {
+                System.out.println("Bad birth date!");
+            }
+
+            this.birthDate = birthDateTime;
+        }
+
+        public void setGender(String gender) {
+            this.gender = GenderValidator.validateAndReturn(gender);
+        }
+
+        @Override
+        public String toString() {
+            return (name.isEmpty() ? "" : name + " ") +
+                    (nickName.isEmpty() ? "" : nickName + ", ");
+        }
+
+        @Override
+        public void edit() {
+            System.out.println("Select a field (name, surname, birth, gender, number): ");
+            String field = SCANNER.nextLine();
+
+            if (isInvalidField(field)) {
+                System.out.println("Invalid field!");
+                return;
+            }
+
+            switch (field) {
+                case "name" -> {
+                    System.out.print("Enter name: ");
+                    setName(SCANNER.nextLine());
+                }
+                case "surname" -> {
+                    System.out.print("Enter surname: ");
+                    setNickName(SCANNER.nextLine());
+                }
+                case "birth" -> {
+                    System.out.print("Enter birth date: ");
+                    setBirthDate(SCANNER.nextLine());
+                }
+                case "gender" -> {
+                    System.out.println("Enter the gender (M, F): ");
+                    setGender(GenderValidator.validateAndReturn(SCANNER.nextLine()));
+                }
+                case "number" -> {
+                    System.out.print("Enter number: ");
+                    String inputNumber = SCANNER.nextLine();
+                    setNumber(PhoneNumberValidator.validateAndReturn(inputNumber));
+                }
+                default -> throw new IllegalArgumentException("Invalid field!");
+            }
+        }
+
+        @Override
+        protected boolean isInvalidField(String field) {
+            return !field.equals("name") && !field.equals("surname") && !field.equals("birth") &&
+                    !field.equals("gender") && !field.equals("number");
+        }
+
+        @Override
+        public String getInfo() {
+            String noData = "[no data]";
+            return String.format("""
+                            Name: %s
+                            Surname: %s
+                            Birth date: %s
+                            Gender: %s
+                            Number: %s
+                            Time created: %s
+                            Time last edit: %s""",
+                    (name == null || name.isEmpty() ? noData : name),
+                    (nickName == null || nickName.isEmpty() ? noData : nickName),
+                    (birthDate == null ? noData : birthDate.toString()),
+                    (gender == null || gender.isEmpty() ? noData : gender),
+                    (number == null || number.isEmpty() ? noData : number),
+                    (created == null ? noData : created.toString()),
+                    (lastEdit == null ? noData : lastEdit.toString()));
+        }
+    }
+  learner_created: true
+- name: src/contacts/contact/organization/Organization.java
+  visible: true
+  text: |
+    package contacts.contact.organization;
+
+    import contacts.contact.Contact;
+    import contacts.contact.ContactDetailsFactory;
+    import contacts.validator.PhoneNumberValidator;
+
+    import static contacts.Main.SCANNER;
+
+    public class Organization extends Contact {
+        String address;
+
+        protected Organization(ContactDetailsFactory detailsFactory) {
+            super();
+            name = detailsFactory.addName();
+            address = detailsFactory.addAddress();
+            number = detailsFactory.addNumber();
+        }
+
+        @Override
+        public String toString() {
+            return (name.isEmpty() ? "" : name + " ");
+        }
+
+        @Override
+        public void edit() {
+            System.out.print("Select a field (name, address, number): ");
+            String field = SCANNER.nextLine();
+
+            if (isInvalidField(field)) {
+                System.out.println("Invalid field!");
+                return;
+            }
+
+            switch (field) {
+                case "name" -> {
+                    System.out.print("Enter name: ");
+                    String inputName = SCANNER.nextLine();
+                    setName(inputName);
+                }
+                case "address" -> {
+                    System.out.print("Enter address: ");
+                    String inputAddress = SCANNER.nextLine();
+                    setAddress(inputAddress);
+                }
+                case "number" -> {
+                    System.out.print("Enter number: ");
+                    String inputNumber = SCANNER.nextLine();
+                    setNumber(PhoneNumberValidator.validateAndReturn(inputNumber));
+                }
+                default -> throw new IllegalArgumentException("Invalid field!");
+            }
+
+            System.out.println("The record updated!");
+        }
+
+        @Override
+        protected boolean isInvalidField(String field) {
+            return !field.equals("name") && !field.equals("address") && !field.equals("number");
+        }
+
+        public void setAddress(String address) {
+            this.address = address;
+        }
+
+        @Override
+        public String getInfo() {
+            String noData = "[no data]";
+            return String.format("""
+                            Organization name: %s
+                            Address: %s
+                            Number: %s
+                            Time created: %s
+                            Time last edit: %s""",
+                    (name == null || name.isEmpty() ? noData : name),
+                    (address == null || address.isEmpty() ? noData : address),
+                    (number == null || number.isEmpty() ? noData : number),
+                    (created == null ? noData : created.toString()),
+                    (lastEdit == null ? noData : lastEdit.toString()));
+        }
+    }
+  learner_created: true
+- name: src/contacts/contact/organization/OrganizationDetailsFactory.java
+  visible: true
+  text: |-
+    package contacts.contact.organization;
+
+    import contacts.contact.ContactDetailsFactory;
+
+    import java.time.LocalDateTime;
+
+    import static contacts.Main.SCANNER;
+
+    public class OrganizationDetailsFactory implements ContactDetailsFactory {
+
+        @Override
+        public LocalDateTime addBirthDate() {
+            return null;
+        }
+
+        @Override
+        public String addGender() {
+            return null;
+        }
+
+        @Override
+        public String addAddress() {
+            System.out.print("Enter the address: ");
+            return SCANNER.nextLine();
+        }
+    }
+  learner_created: true
+- name: src/contacts/validator/NameValidator.java
+  visible: true
+  text: |
+    package contacts.validator;
+
+    public class NameValidator {
+        public static String validateAndReturn(String input) {
+            if (input == null || input.isEmpty()) {
+                System.out.println("Bad name!");
+                return "";
+            }
+            return input;
+        }
+    }
+  learner_created: true
+- name: src/contacts/contact/ContactDetailsFactory.java
+  visible: true
+  text: |
+    package contacts.contact;
+
+    import contacts.validator.BirthDateValidator;
+    import contacts.validator.PhoneNumberValidator;
+
+    import java.time.LocalDateTime;
+
+    import static contacts.Main.SCANNER;
+
+    public interface ContactDetailsFactory {
+
+        default String addName() {
+            System.out.print("Enter the name: ");
+            return SCANNER.nextLine();
+        }
+
+        default String addSurname() {
+            System.out.print("Enter the surname: ");
+            return SCANNER.nextLine();
+        }
+
+        LocalDateTime addBirthDate();
+
+        String addGender();
+
+        String addAddress();
+
+        default String addNumber() {
+            System.out.print("Enter the number: ");
+            var number = SCANNER.nextLine();
+            return PhoneNumberValidator.validateAndReturn(number);
+        }
+    }
+  learner_created: true
+- name: src/contacts/contact/ContactFactory.java
+  visible: true
+  text: |
+    package contacts.contact;
+
+    public interface ContactFactory {
+        Contact createContact();
+    }
+  learner_created: true
+- name: src/contacts/contact/Contact.java
+  visible: true
+  text: |
+    package contacts.contact;
+
+    import contacts.validator.PhoneNumberValidator;
+
+    import java.time.LocalDateTime;
+
+    public abstract class Contact {
+        protected String name;
+        protected String number;
+        protected final LocalDateTime created;
+        protected LocalDateTime lastEdit;
+
+        protected Contact() {
+            lastEdit = created = LocalDateTime.now();
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public void setNumber(String number) {
+            this.number = PhoneNumberValidator.validateAndReturn(number);
+        }
+
+        public abstract void edit();
+
+        protected abstract boolean isInvalidField(String field);
+
+        public void setLastEdit(LocalDateTime lastEdit) {
+            this.lastEdit = lastEdit;
+        }
+
+        public abstract String getInfo();
+    }
+  learner_created: true
+- name: src/contacts/validator/PhoneNumberValidator.java
+  visible: true
+  text: |
+    package contacts.validator;
+
+    import java.util.regex.Pattern;
+
+    public class PhoneNumberValidator {
+
+        private PhoneNumberValidator() {
+        }
+
+        /*
+         * The phone number should be split into groups using a space or dash. One group is also possible.
+         * Before the first group, there may or may not be a plus symbol.
+         * The first group or the second group can be wrapped in parentheses,
+         * but there should be no more than one group which is wrapped in parentheses.
+         * There may be no groups wrapped in parentheses.
+         * A group can contain numbers, uppercase, and lowercase English letters.
+         * A group should be at least 2 symbols in length. But the first group may be only one symbol in length.
+         * */
+
+        private static final String PHONE_NUMBER_REGEX = "^\\+?([\\da-zA-Z]+[\\s-]?)?" +
+                "(\\([\\da-zA-Z]{2,}(\\)[\\s-]|\\)$))?" +
+                "([\\da-zA-Z]{2,}[\\s-]?)*([\\da-zA-Z]{2,})?$";
+        private static final Pattern PHONE_NUMBER_PATTERN = Pattern.compile(PHONE_NUMBER_REGEX);
+
+        private static boolean isValid(String phoneNumber) {
+            return PHONE_NUMBER_PATTERN.matcher(phoneNumber).matches();
+        }
+
+
+        public static String validateAndReturn(String input) {
+            if (input == null || input.isEmpty()) {
+                System.out.println("Bad birth date!");
+                return "";
+            }
+
+            if (isValid(input)) {
+                return input;
+            } else {
+                System.out.println("Wrong number format!");
+                return "";
+            }
+        }
+    }
+  learner_created: true
+- name: src/contacts/contact/person/PersonFactory.java
+  visible: true
+  text: |
+    package contacts.contact.person;
+
+    import contacts.contact.Contact;
+    import contacts.contact.ContactDetailsFactory;
+    import contacts.contact.ContactFactory;
+
+    public class PersonFactory implements ContactFactory {
+        @Override
+        public Contact createContact() {
+            ContactDetailsFactory detailsFactory = new PersonDetailsFactory();
+            return new Person(detailsFactory);
+        }
+    }
+  learner_created: true
+- name: src/contacts/cli/command/ListCommand.java
+  visible: true
+  learner_created: true
+- name: src/contacts/cli/command/AddCommand.java
+  visible: true
+  text: |
+    package contacts.cli;
+
+    import contacts.contact.Contact;
+    import contacts.contact.ContactFactory;
+    import contacts.contact.organization.OrganizationFactory;
+    import contacts.contact.person.PersonFactory;
+    import contacts.database.Dataset;
+
+    import static contacts.Main.SCANNER;
+
+    public class AddCommand extends CliCommand {
+
+        @Override
+        public void execute() {
+            System.out.println("Enter the type (person, organization): ");
+            String type = SCANNER.nextLine();
+            if (!isValidType(type)) {
+                System.out.println("Invalid type!");
+                return;
+            }
+
+            ContactFactory contactFactory;
+            switch (type) {
+                case "person" -> contactFactory = new PersonFactory();
+                case "organization" -> contactFactory = new OrganizationFactory();
+                default -> throw new IllegalArgumentException("Invalid type!");
+            }
+
+            Contact contact = contactFactory.createContact();
+            Dataset.addContact(contact);
+
+            System.out.println("The record added.\n");
+        }
+
+        private boolean isValidType(String type) {
+            return type.equals("person") || type.equals("organization");
+        }
+    }
+  learner_created: true
+- name: src/contacts/cli/command/CountCommand.java
+  visible: true
+  text: |
+    package contacts.cli;
+
+    import contacts.database.Dataset;
+
+    public class CountCommand extends CliCommand {
+        public void execute() {
+            System.out.printf("The Phone Book has %d records.%n%n", Dataset.getSize());
+        }
+    }
+  learner_created: true
+- name: src/contacts/cli/command/ExitCommand.java
+  visible: true
+  text: |
+    package contacts.cli;
+
+    public class ExitCommand extends CliCommand {
+        @Override
+        void execute() {
+        }
+    }
+  learner_created: true
+- name: src/contacts/cli/command/CliCommandController.java
+  visible: true
+  text: |
+    package contacts.cli;
+
+    public class CliCommandController {
+        private CliCommand cliCommand;
+
+        public void executeCommand() {
+            cliCommand.execute();
+        }
+
+        public void setCliCommand(CliCommand cliCommand) {
+            this.cliCommand = cliCommand;
+        }
+    }
+  learner_created: true
+- name: src/contacts/cli/command/SearchCommand.java
+  visible: true
+  learner_created: true
+- name: src/contacts/cli/CLI.java
+  visible: true
+  learner_created: true
+- name: src/contacts/cli/command/Command.java
+  visible: true
+  learner_created: true
+- name: src/contacts/cli/menu/MainMenu.java
+  visible: true
+  text: |
+    package contacts.cli;
+
+    import static contacts.Main.SCANNER;
+
+    public class CLI {
+        private static final CliCommandController controller = new CliCommandController();
+
+        private CLI() {
+        }
+
+        public static void start() {
+            boolean isRunning = true;
+            while (isRunning) {
+                isRunning = mainMenu();
+            }
+        }
+
+        private static boolean mainMenu() {
+            System.out.print("Enter action (add, remove, edit, count, list, exit): ");
+            String action = SCANNER.nextLine();
+
+            if (!isValidAction(action)) {
+                System.out.println("Unknown action!");
+                return true;
+            }
+
+            controller.setCliCommand(
+                    switch (action) {
+                        case "remove" -> new RemoveCommand();
+                        case "edit" -> new EditCommand();
+                        case "count" -> new CountCommand();
+                        case "info" -> new InfoCommand();
+                        case "exit" -> new ExitCommand();
+                        default -> new AddCommand();
+                    }
+            );
+            controller.executeCommand();
+            return !action.equals("exit");
+        }
+
+        private static boolean isValidAction(String action) {
+            return action.equals("add") || action.equals("remove") ||
+                    action.equals("edit") || action.equals("count") ||
+                    action.equals("info") || action.equals("exit");
+        }
+    }
+  learner_created: true
+- name: src/contacts/cli/menu/RecordMenu.java
+  visible: true
+  learner_created: true
+- name: src/contacts/cli/menu/ListMenu.java
+  visible: true
+  learner_created: true
+- name: src/contacts/cli/menu/Menu.java
+  visible: true
+  learner_created: true
+- name: src/contacts/cli/menu/SearchMenu.java
+  visible: true
+  learner_created: true
+- name: src/contacts/cli/Utiltly.java
+  visible: true
+  learner_created: true
 feedback_link: https://hyperskill.org/learn/step/5327#comment
-status: Unchecked
-record: -1
+status: Solved
+feedback:
+  message: Well done! You've finished the project. Select a new project on <a href="https://hyperskill.org/projects">JetBrains
+    Academy</a> to continue learning.
+  time: Sat, 16 Jul 2022 16:08:18 UTC
+record: 4

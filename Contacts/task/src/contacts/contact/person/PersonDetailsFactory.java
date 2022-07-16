@@ -18,7 +18,7 @@ public class PersonDetailsFactory implements ContactDetailsFactory {
 
     @Override
     public String addGender() {
-        System.out.println("Enter the gender (M, F): ");
+        System.out.print("Enter the gender (M, F): ");
         return GenderValidator.validateAndReturn(SCANNER.nextLine());
     }
 

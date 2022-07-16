@@ -1,4 +1,4 @@
-package contacts.cli;
+package contacts.cli.command;
 
 import contacts.contact.Contact;
 import contacts.contact.ContactFactory;
@@ -8,7 +8,7 @@ import contacts.database.Dataset;
 
 import static contacts.Main.SCANNER;
 
-public class AddCommand extends CliCommand {
+public class AddCommand implements Command {
 
     @Override
     public void execute() {

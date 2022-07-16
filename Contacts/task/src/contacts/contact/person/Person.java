@@ -52,7 +52,7 @@ public class Person extends Contact {
 
     @Override
     public void edit() {
-        System.out.println("Select a field (name, surname, birth, gender, number): ");
+        System.out.print("Select a field (name, surname, birth, gender, number): ");
         String field = SCANNER.nextLine();
 
         if (isInvalidField(field)) {
