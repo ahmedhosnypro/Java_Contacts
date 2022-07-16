@@ -26,12 +26,12 @@ public class CLI {
 
         controller.setCliCommand(
                 switch (action) {
-                    default -> new AddCommand();
                     case "remove" -> new RemoveCommand();
                     case "edit" -> new EditCommand();
                     case "count" -> new CountCommand();
-                    case "list" -> new ListCommand();
+                    case "info" -> new InfoCommand();
                     case "exit" -> new ExitCommand();
+                    default -> new AddCommand();
                 }
         );
         controller.executeCommand();
@@ -41,6 +41,6 @@ public class CLI {
     private static boolean isValidAction(String action) {
         return action.equals("add") || action.equals("remove") ||
                 action.equals("edit") || action.equals("count") ||
-                action.equals("list") || action.equals("exit");
+                action.equals("info") || action.equals("exit");
     }
 }

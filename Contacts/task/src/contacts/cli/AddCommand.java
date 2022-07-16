@@ -1,25 +1,38 @@
 package contacts.cli;
 
 import contacts.contact.Contact;
+import contacts.contact.ContactFactory;
+import contacts.contact.organization.OrganizationFactory;
+import contacts.contact.person.PersonFactory;
 import contacts.database.Dataset;
 
 import static contacts.Main.SCANNER;
 
 public class AddCommand extends CliCommand {
+
     @Override
     public void execute() {
-        System.out.print("Enter the name: ");
-        String name = SCANNER.nextLine();
+        System.out.println("Enter the type (person, organization): ");
+        String type = SCANNER.nextLine();
+        if (!isValidType(type)) {
+            System.out.println("Invalid type!");
+            return;
+        }
 
-        System.out.print("Enter the surname: ");
-        String surname = SCANNER.nextLine();
+        ContactFactory contactFactory;
+        switch (type) {
+            case "person" -> contactFactory = new PersonFactory();
+            case "organization" -> contactFactory = new OrganizationFactory();
+            default -> throw new IllegalArgumentException("Invalid type!");
+        }
 
-        System.out.print("Enter the number: ");
-        String number = SCANNER.nextLine();
-
-        Contact contact = new Contact(name, surname, number);
+        Contact contact = contactFactory.createContact();
         Dataset.addContact(contact);
 
-       System.out.println("The record added.");
+        System.out.println("The record added.\n");
+    }
+
+    private boolean isValidType(String type) {
+        return type.equals("person") || type.equals("organization");
     }
 }

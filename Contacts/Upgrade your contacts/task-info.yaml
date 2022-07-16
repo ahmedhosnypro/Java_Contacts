@@ -212,6 +212,425 @@ files:
     \      catch (Exception ex) {\n            return new CheckResult(false, \"Can't\
     \ check the answer\");\n        }\n    }\n}\n"
   learner_created: false
+- name: src/contacts/cli/CliCommandController.java
+  visible: true
+  text: |
+    package contacts.cli;
+
+    public class CliCommandController {
+        private CliCommand cliCommand;
+
+        public void executeCommand() {
+            cliCommand.execute();
+        }
+
+        public void setCliCommand(CliCommand cliCommand) {
+            this.cliCommand = cliCommand;
+        }
+    }
+  learner_created: true
+- name: src/contacts/cli/CountCommand.java
+  visible: true
+  text: |
+    package contacts.cli;
+
+    import contacts.database.Dataset;
+
+    public class CountCommand extends CliCommand {
+        public void execute() {
+            System.out.printf("The Phone Book has %d records.%n", Dataset.getSize());
+        }
+    }
+  learner_created: true
+- name: src/contacts/cli/RemoveCommand.java
+  visible: true
+  text: |
+    package contacts.cli;
+
+    import contacts.database.Dataset;
+
+    public class RemoveCommand extends CliCommand {
+        @Override
+        public void execute() {
+            if (Dataset.isEmpty()) {
+                System.out.println("No records to remove!");
+                return;
+            }
+
+            int index = readRecordIndex();
+
+            removeRecord(index);
+        }
+
+        private void removeRecord(int recordIndex) {
+            Dataset.removeContact(Dataset.getRecord(recordIndex));
+            System.out.println("The record removed!");
+        }
+    }
+  learner_created: true
+- name: src/contacts/cli/CLI.java
+  visible: true
+  text: |
+    package contacts.cli;
+
+    import static contacts.Main.SCANNER;
+
+    public class CLI {
+        private static final CliCommandController controller = new CliCommandController();
+
+        private CLI() {
+        }
+
+        public static void start() {
+            boolean isRunning = true;
+            while (isRunning) {
+                isRunning = mainMenu();
+            }
+        }
+
+        private static boolean mainMenu() {
+            System.out.print("Enter action (add, remove, edit, count, list, exit): ");
+            String action = SCANNER.nextLine();
+
+            if (!isValidAction(action)) {
+                System.out.println("Unknown action!");
+                return true;
+            }
+
+            controller.setCliCommand(
+                    switch (action) {
+                        default -> new AddCommand();
+                        case "remove" -> new RemoveCommand();
+                        case "edit" -> new EditCommand();
+                        case "count" -> new CountCommand();
+                        case "list" -> new ListCommand();
+                        case "exit" -> new ExitCommand();
+                    }
+            );
+            controller.executeCommand();
+            return !action.equals("exit");
+        }
+
+        private static boolean isValidAction(String action) {
+            return action.equals("add") || action.equals("remove") ||
+                    action.equals("edit") || action.equals("count") ||
+                    action.equals("list") || action.equals("exit");
+        }
+    }
+  learner_created: true
+- name: src/contacts/cli/ExitCommand.java
+  visible: true
+  text: |
+    package contacts.cli;
+
+    public class ExitCommand extends CliCommand {
+        @Override
+        void execute() {
+        }
+    }
+  learner_created: true
+- name: src/contacts/database/Dataset.java
+  visible: true
+  text: |
+    package contacts.database;
+
+    import contacts.contact.Contact;
+
+    import java.util.ArrayList;
+
+    public class Dataset {
+        private Dataset() {
+        }
+
+        private static final ArrayList<Contact> contacts = new ArrayList<>();
+
+        public static int getSize() {
+            return contacts.size();
+        }
+
+        public static Contact getRecord(int index) {
+            return contacts.get(index);
+        }
+
+        public static boolean isEmpty() {
+            return contacts.isEmpty();
+        }
+
+        public static void addContact(Contact contact) {
+            contacts.add(contact);
+        }
+
+        public static void removeContact(Contact contact) {
+            contacts.remove(contact);
+        }
+
+        public static void removeAllContacts() {
+            contacts.clear();
+        }
+
+        public static boolean containsContact(Contact contact) {
+            return contacts.contains(contact);
+        }
+    }
+  learner_created: true
+- name: src/contacts/cli/EditCommand.java
+  visible: true
+  text: |
+    package contacts.cli;
+
+    import contacts.database.Dataset;
+
+    import static contacts.Main.SCANNER;
+
+    public class EditCommand extends CliCommand {
+        @Override
+        public void execute() {
+            if (Dataset.isEmpty()) {
+                System.out.println("No records to edit!");
+                return;
+            }
+
+            int index = readRecordIndex();
+
+            editRecord(index);
+        }
+
+        private void editRecord(int recordIndex) {
+            System.out.print("Select a field (name, surname, number): ");
+            String field = SCANNER.nextLine();
+
+            if (!isValidField(field)) {
+                System.out.println("Invalid field!");
+                return;
+            }
+
+            switch (field) {
+                case "name" -> {
+                    System.out.print("Enter name: ");
+                    String name = SCANNER.nextLine();
+                    Dataset.getRecord(recordIndex).setName(name);
+                }
+                case "surname" -> {
+                    System.out.print("Enter surname: ");
+                    String surname = SCANNER.nextLine();
+                    Dataset.getRecord(recordIndex).setSurname(surname);
+                }
+                case "number" -> {
+                    System.out.print("Enter number: ");
+                    String number = SCANNER.nextLine();
+                    Dataset.getRecord(recordIndex).setNumber(number);
+                }
+                default -> {
+                }
+            }
+
+            System.out.println("The record updated!");
+        }
+
+        private boolean isValidField(String field) {
+            return field.equals("name") || field.equals("surname") || field.equals("number");
+        }
+    }
+  learner_created: true
+- name: src/contacts/cli/AddCommand.java
+  visible: true
+  text: |
+    package contacts.cli;
+
+    import contacts.contact.Contact;
+    import contacts.database.Dataset;
+
+    import static contacts.Main.SCANNER;
+
+    public class AddCommand extends CliCommand {
+        @Override
+        public void execute() {
+            System.out.print("Enter the name: ");
+            String name = SCANNER.nextLine();
+
+            System.out.print("Enter the surname: ");
+            String surname = SCANNER.nextLine();
+
+            System.out.print("Enter the number: ");
+            String number = SCANNER.nextLine();
+
+            Contact contact = new Contact(name, surname, number);
+            Dataset.addContact(contact);
+
+           System.out.println("The record added.");
+        }
+    }
+  learner_created: true
+- name: src/contacts/contact/Contact.java
+  visible: true
+  text: |
+    package contacts.contact;
+
+    public class Contact {
+        protected String name;
+        protected String surname;
+        protected String number;
+
+        public Contact(String name, String surname, String number) {
+            this.name = name;
+            this.surname = surname;
+            this.number = PhoneNumberValidator.validateAndReturn(number);
+        }
+
+        //getters & setters for properties
+        public String getName() {
+            return name;
+        }
+
+        public String getSurname() {
+            return surname;
+        }
+
+        public String getNumber() {
+            return number;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public void setSurname(String surname) {
+            this.surname = surname;
+        }
+
+        public void setNumber(String number) {
+            this.number = PhoneNumberValidator.validateAndReturn(number);
+        }
+
+        @Override
+        public String toString() {
+            return (name.isEmpty() ? "" : name + " ") +
+                    (surname.isEmpty() ? "" : surname + ", ") +
+                    (number.isEmpty() ? "[no number]" : number);
+        }
+    }
+  learner_created: true
+- name: src/contacts/cli/CliCommand.java
+  visible: true
+  text: |
+    package contacts.cli;
+
+    import contacts.database.Dataset;
+
+    import static contacts.Main.SCANNER;
+
+    public abstract class CliCommand {
+        abstract void execute();
+
+        int readRecordIndex() {
+            new ListCommand().execute();
+            System.out.print("Select a record: ");
+            return getValidIndex();
+        }
+
+        int getValidIndex() {
+            int index = readInt() - 1;
+            while (!isValidIndex(index)) {
+                System.out.print("Invalid index! Try again: ");
+                index = readInt() - 1;
+            }
+            return index;
+        }
+
+        boolean isValidIndex(int index) {
+            return index >= 0 && index < Dataset.getSize();
+        }
+
+        int readInt() {
+            while (true) {
+                try {
+                    return Integer.parseInt(SCANNER.nextLine());
+                } catch (NumberFormatException e) {
+                    System.out.print("Invalid input! Try again: ");
+                }
+            }
+        }
+    }
+  learner_created: true
+- name: src/contacts/contact/organization/Organization.java
+  visible: true
+  learner_created: true
+- name: src/contacts/contact/person/Person.java
+  visible: true
+  learner_created: true
+- name: src/contacts/contact/ContactFactory.java
+  visible: true
+  learner_created: true
+- name: src/contacts/contact/person/PersonFactory.java
+  visible: true
+  learner_created: true
+- name: src/contacts/contact/ContactDetailsFactory.java
+  visible: true
+  learner_created: true
+- name: src/contacts/contact/organization/OrganizationDetailsFactory.java
+  visible: true
+  learner_created: true
+- name: src/contacts/contact/person/PersonDetailsFactory.java
+  visible: true
+  learner_created: true
+- name: src/contacts/validator/PhoneNumberValidator.java
+  visible: true
+  text: |
+    package contacts.contact;
+
+    import java.util.regex.Pattern;
+
+    public class PhoneNumberValidator {
+        private PhoneNumberValidator() {
+        }
+
+        /*
+         * The phone number should be split into groups using a space or dash. One group is also possible.
+         * Before the first group, there may or may not be a plus symbol.
+         * The first group or the second group can be wrapped in parentheses,
+         * but there should be no more than one group which is wrapped in parentheses.
+         * There may be no groups wrapped in parentheses.
+         * A group can contain numbers, uppercase, and lowercase English letters.
+         * A group should be at least 2 symbols in length. But the first group may be only one symbol in length.
+         * */
+
+        private static final String PHONE_NUMBER_REGEX = "^\\+?([\\da-zA-Z]+[\\s-]?)?" +
+                "(\\([\\da-zA-Z]{2,}(\\)[\\s-]|\\)$))?" +
+                "([\\da-zA-Z]{2,}[\\s-]?)*([\\da-zA-Z]{2,})?$";
+        private static final Pattern PHONE_NUMBER_PATTERN = Pattern.compile(PHONE_NUMBER_REGEX);
+
+        private static boolean validate(String phoneNumber) {
+            return PHONE_NUMBER_PATTERN.matcher(phoneNumber).matches();
+        }
+
+        public static String validateAndReturn(String phoneNumber) {
+            if (validate(phoneNumber)) {
+                return phoneNumber;
+            } else {
+                System.out.println("Wrong number format!");
+                return "";
+            }
+        }
+    }
+  learner_created: true
+- name: src/contacts/contact/organization/OrganizationFactory.java
+  visible: true
+  learner_created: true
+- name: src/contacts/cli/InfoCommand.java
+  visible: true
+  learner_created: true
+- name: src/contacts/validator/GenderValidator.java
+  visible: true
+  learner_created: true
+- name: src/contacts/validator/BirthDateValidator.java
+  visible: true
+  learner_created: true
+- name: src/contacts/validator/NameValidator.java
+  visible: true
+  learner_created: true
 feedback_link: https://hyperskill.org/learn/step/5326#comment
-status: Unchecked
+status: Solved
+feedback:
+  message: Congratulations!
+  time: Sat, 16 Jul 2022 11:30:59 UTC
 record: -1

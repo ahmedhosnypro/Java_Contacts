@@ -30,11 +30,15 @@ public class Dataset {
         contacts.remove(contact);
     }
 
-    public static void removeAllContacts() {
-        contacts.clear();
-    }
+    public static String list() {
+        if (isEmpty()) {
+            return "";
+        }
 
-    public static boolean containsContact(Contact contact) {
-        return contacts.contains(contact);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < Dataset.getSize(); i++) {
+            sb.append(String.format("%d. %s%n", i + 1, Dataset.getRecord(i).toString()));
+        }
+        return sb.toString().trim();
     }
 }

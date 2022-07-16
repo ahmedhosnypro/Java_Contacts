@@ -8,7 +8,6 @@ public abstract class CliCommand {
     abstract void execute();
 
     int readRecordIndex() {
-        new ListCommand().execute();
         System.out.print("Select a record: ");
         return getValidIndex();
     }

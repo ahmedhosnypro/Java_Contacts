@@ -1,45 +1,34 @@
 package contacts.contact;
 
-public class Contact {
+import contacts.validator.PhoneNumberValidator;
+
+import java.time.LocalDateTime;
+
+public abstract class Contact {
     protected String name;
-    protected String surname;
     protected String number;
+    protected final LocalDateTime created;
+    protected LocalDateTime lastEdit;
 
-    public Contact(String name, String surname, String number) {
-        this.name = name;
-        this.surname = surname;
-        this.number = PhoneNumberValidator.validateAndReturn(number);
-    }
-
-    //getters & setters for properties
-    public String getName() {
-        return name;
-    }
-
-    public String getSurname() {
-        return surname;
-    }
-
-    public String getNumber() {
-        return number;
+    protected Contact() {
+        lastEdit = created = LocalDateTime.now();
     }
 
     public void setName(String name) {
         this.name = name;
     }
 
-    public void setSurname(String surname) {
-        this.surname = surname;
-    }
-
     public void setNumber(String number) {
         this.number = PhoneNumberValidator.validateAndReturn(number);
     }
 
-    @Override
-    public String toString() {
-        return (name.isEmpty() ? "" : name + " ") +
-                (surname.isEmpty() ? "" : surname + ", ") +
-                (number.isEmpty() ? "[no number]" : number);
+    public abstract void edit();
+
+    protected abstract boolean isInvalidField(String field);
+
+    public void setLastEdit(LocalDateTime lastEdit) {
+        this.lastEdit = lastEdit;
     }
+
+    public abstract String getInfo();
 }
